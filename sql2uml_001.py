@@ -2,9 +2,6 @@ import pprint
 file_path='ocs-rerate-orchestration_tables_00.cql'
 i=0
 with open(file_path, "r") as df:
-    # # l = df.read()
-    # l = df.readline()
-    # i+=1
     lines = [line for line in df]
 
 tables = []
@@ -28,7 +25,7 @@ for l in lines:
     if tableStart and len(items) > 0 and items[0] != 'PRIMARY' and items[0] != 'CREATE':
         column = dict()
         column['name'] = items[0]
-        # отрезать пследний символ - запятую
+        # remove last character ',' from the string
         column_type = items[1]
         column_type = column_type[:-1]
         column['type'] = column_type
@@ -60,7 +57,7 @@ with open(uml_file_path, 'w', encoding='utf8') as f:
         print(type(o), o)
         table_line = 'table(' + o['table_name'] + ') {\n'
         f.write(table_line)
-        # TODO сюда вывод columns
+        # here is columns info output
         table_columns = o['columns']
         for c in table_columns:
             column_line = c['name'] + ' : ' + c['type'] + '\n'
