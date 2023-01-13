@@ -14,6 +14,7 @@ for l in lines:
         table = dict()
         table['table_name'] = items[5]
         table['columns'] = []
+        table['primary_keys'] = []
         cur_table = table
         tables.append(items[5])
         tableStart = True
@@ -31,6 +32,20 @@ for l in lines:
         column['type'] = column_type
         cur_table['columns'].append(column)
 
+    # PRIMARY KEYs
+    if tableStart and len(items) > 2 and items[0] == 'PRIMARY' and items[1] == 'KEY':
+        for item in items[2:]:
+            # print(f'PRIMARY KEY item = {item}')
+            # print(f'items[2]={items[2]} items[-1:]={items[-1]}')
+            primary_key_item = item
+            if item == items[2]:
+                primary_key_item = primary_key_item[1:-1]
+            else:
+                primary_key_item = primary_key_item[:-1]
+
+            # print(f'primary_key_item={primary_key_item}')
+            cur_table['primary_keys'].append(primary_key_item)
+
     print(f'len(items)={len(items)} tableStart={tableStart} {items}')
 
 uml_start = """
@@ -42,7 +57,21 @@ uml_start = """
 hide methods	
 hide stereotypes
 
-title ReRate Cassandra tables 
+title ReRate Cassandra tables
+
+rerateTask "*" -up- "1" rerateRequest : request_id 
+rerateCostedEvents "*" -up- "1" rerateRequest : request_id
+rerateBucketAdjustments "*" -up- "1" rerateRequest : request_id
+rerateAccountLock "*" -up- "1" rerateRequest : request_id
+aggregationAccountLevel "*" -up- "1" rerateRequest : request_id
+aggregationSubscriberLevel "*" -up- "1" rerateRequest : request_id
+aggregationPeriodicSummaryLevel "*" -up- "1" rerateRequest : request_id
+aggregationDiscountLevel "*" -up- "1" rerateRequest : request_id
+aggregationLevel "*" -up- "1" rerateRequest : request_id
+currentRequest "*" -up- "1" rerateRequest : request_id
+notification "*" -up- "1" rerateRequest : request_id
+roamingAccountCeKey "*" -up- "1" rerateRequest : request_id
+
 """
 
 uml_end = """
@@ -59,8 +88,15 @@ with open(uml_file_path, 'w', encoding='utf8') as f:
         f.write(table_line)
         # here is columns info output
         table_columns = o['columns']
+        primary_keys = o['primary_keys']
         for c in table_columns:
-            column_line = c['name'] + ' : ' + c['type'] + '\n'
+            # primary keys
+            column_name = c['name']
+            print(f'column_name={column_name} {primary_keys}')
+            if column_name in primary_keys:
+                column_line = 'primary_key(' + column_name + ') : ' + c['type'] + '\n'
+            else:
+                column_line = column_name + ' : ' + c['type'] + '\n'
             f.write(column_line)
 
         f.write('}\n\n')
